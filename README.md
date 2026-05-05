@@ -17,6 +17,7 @@ $$ U(t) = u + c t - \sum_{i=1}^{N(t)} Y_i $$
 
 * `cl_model.py`: Lớp `CramerLundbergModel` và lõi mô phỏng.
 * `main.py`: Chương trình chạy mẫu từ dòng lệnh.
+* `app.py`: UI Streamlit để nhập tham số và xem kết quả mô phỏng.
 
 ## **Cài đặt**
 
@@ -32,6 +33,12 @@ pip install -r requirements.txt
 
 ```
 python main.py
+```
+
+Chạy UI Streamlit:
+
+```
+streamlit run app.py
 ```
 
 Ví dụ tuỳ chỉnh tham số:
