@@ -31,6 +31,17 @@ DEFAULTS = {
 FIG_SMALL = (5.4, 3.2)
 FIG_MED = (6.4, 3.6)
 FIG_WIDE = (7.2, 3.8)
+FIG_TIGHT = (5.6, 3.1)
+FIG_WIDE_TIGHT = (6.6, 3.2)
+
+
+def style_axes(ax) -> None:
+    """Apply a clean, academic plot style."""
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.grid(True, linestyle=":", linewidth=0.6, alpha=0.6)
+    ax.set_axisbelow(True)
 
 
 def init_state() -> None:
@@ -98,6 +109,13 @@ def apply_style() -> None:
           box-shadow: 0 12px 22px rgba(27, 38, 49, 0.06);
           animation: fade-up 0.65s ease-in-out;
         }
+                div[data-testid="stMetric"] {
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid var(--border);
+                    border-radius: 14px;
+                    padding: 0.75rem 0.85rem;
+                    box-shadow: 0 10px 18px rgba(27, 38, 49, 0.05);
+                }
         .tag {
           display: inline-block;
           padding: 0.25rem 0.6rem;
@@ -350,7 +368,7 @@ def plot_hist_with_pdf(
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Density")
-    ax.grid(True, linestyle=":", linewidth=0.5)
+    style_axes(ax)
     st.pyplot(fig, use_container_width=True)
 
 
@@ -376,32 +394,88 @@ def main() -> None:
         if st.button("Load Beta example"):
             reset_state()
 
-        st.number_input("Initial capital u (million USD)", min_value=0.0, key="u")
-        st.number_input("Premium rate c (million USD/day)", min_value=0.0, key="c")
+        # Core scenario inputs
         st.number_input(
-            "Poisson intensity lambda (events/day)",
+            r"Initial capital $u$ (million USD)",
+            min_value=0.0,
+            key="u",
+            help="Initial reserve level at time 0.",
+        )
+        st.number_input(
+            r"Premium rate $c$ (million USD/day)",
+            min_value=0.0,
+            key="c",
+            help="Constant premium inflow per day.",
+        )
+        st.number_input(
+            r"Poisson intensity $\lambda$ (events/day)",
             min_value=0.01,
             key="lambda_rate",
+            help="Arrival rate of claim events in the Poisson process.",
         )
-        st.number_input("Claim rate beta (1/million USD)", min_value=0.01, key="beta_rate")
+        st.number_input(
+            r"Claim rate $\beta$ (1/million USD)",
+            min_value=0.01,
+            key="beta_rate",
+            help="Rate parameter for exponential claim sizes; mean is 1/beta.",
+        )
 
         st.divider()
         st.header("Analysis targets")
-        st.number_input("Analysis horizon t (days)", min_value=0.1, key="analysis_t")
         st.number_input(
-            "Threshold for day 2 claims (million USD)",
+            r"Analysis horizon $t$ (days)",
+            min_value=0.1,
+            key="analysis_t",
+            help="Time horizon used in analytical moments and Poisson diagnostics.",
+        )
+        st.number_input(
+            r"Threshold $S_2$ (million USD)",
             min_value=0.1,
             key="threshold",
+            help="Tail threshold for day-2 aggregate claims.",
         )
 
         st.divider()
         st.header("Simulation settings")
-        st.number_input("Simulation horizon T (days)", min_value=0.1, key="sim_horizon")
-        st.number_input("Monte Carlo paths", min_value=10, key="sim_count")
-        st.number_input("Paths to plot", min_value=1, key="path_count")
-        st.number_input("Samples for PDFs", min_value=100, key="sample_size")
-        st.number_input("Random seed", min_value=0, key="seed")
-        st.number_input("Trace events", min_value=1, key="trace_limit")
+        st.number_input(
+            r"Simulation horizon $T$ (days)",
+            min_value=0.1,
+            key="sim_horizon",
+            help="Time horizon for path simulations.",
+        )
+        st.number_input(
+            "Random seed",
+            min_value=0,
+            key="seed",
+            help="Seed for reproducible Monte Carlo experiments.",
+        )
+
+        # Advanced sampling controls
+        with st.expander("Advanced Monte Carlo settings", expanded=False):
+            st.number_input(
+                r"Monte Carlo paths $M$",
+                min_value=10,
+                key="sim_count",
+                help="Number of simulated paths for ruin estimation.",
+            )
+            st.number_input(
+                "Paths to plot",
+                min_value=1,
+                key="path_count",
+                help="Number of trajectories drawn in the multi-path preview.",
+            )
+            st.number_input(
+                "Samples for PDFs",
+                min_value=100,
+                key="sample_size",
+                help="Sample size for distribution diagnostics.",
+            )
+            st.number_input(
+                "Trace events",
+                min_value=1,
+                key="trace_limit",
+                help="Number of claim events shown in the trace table.",
+            )
 
     u = float(st.session_state["u"])
     c = float(st.session_state["c"])
@@ -434,14 +508,15 @@ def main() -> None:
         adjustment = None
         ruin_prob = 1.0
 
+    # Metrics summary panel
     metrics = st.columns(4)
-    metrics[0].metric("Mean claim (mu)", f"{mean_claim:.3f}")
+    metrics[0].metric(r"Mean claim $\mu$", f"{mean_claim:.3f}")
     metrics[1].metric("Net profit", "Yes" if net_profit else "No")
     metrics[2].metric(
-        "Adjustment R",
+        r"Adjustment $R$",
         f"{adjustment:.4f}" if adjustment is not None else "N/A",
     )
-    metrics[3].metric("Ruin prob (analytic)", f"{ruin_prob:.4f}")
+    metrics[3].metric(r"Ruin prob $\psi(u)$", f"{ruin_prob:.4f}")
 
     tabs = st.tabs(["Overview", "Simulation", "Distributions", "Ruin Risk"])
 
@@ -479,8 +554,11 @@ def main() -> None:
             color=["#2f80ed", "#f2994a", "#27ae60"],
         )
         ax.set_ylabel("Million USD")
-        ax.grid(True, axis="y", linestyle=":", linewidth=0.5)
+        style_axes(ax)
         st.pyplot(fig, use_container_width=True)
+        st.caption(
+            "Premium inflow, expected claims, and expected reserve at the analysis horizon."
+        )
         st.markdown("</div>", unsafe_allow_html=True)
 
     with tabs[1]:
@@ -506,15 +584,18 @@ def main() -> None:
 
             times, values = build_step_path(result)
             chart_cols = st.columns(2)
-            fig, ax = plt.subplots(figsize=FIG_MED)
+            fig, ax = plt.subplots(figsize=FIG_TIGHT)
             ax.step(times, values, where="post", label="U(t)", linewidth=2)
             ax.axhline(0.0, color="red", linestyle="--", label="Ruin boundary")
             ax.set_xlabel("Time t")
             ax.set_ylabel("Surplus U(t)")
             ax.set_title("Surplus path (step function)")
             ax.legend()
-            ax.grid(True, linestyle=":", linewidth=0.5)
+            style_axes(ax)
             chart_cols[0].pyplot(fig, use_container_width=True)
+            chart_cols[0].caption(
+                "Single-path surplus with the ruin boundary at U(t)=0."
+            )
 
             premiums = [0.0]
             claims = [0.0]
@@ -530,19 +611,22 @@ def main() -> None:
                 premiums.append(c * end_time)
                 claims.append(claims[-1])
 
-            fig, ax = plt.subplots(figsize=FIG_MED)
+            fig, ax = plt.subplots(figsize=FIG_TIGHT)
             ax.plot(times_cf, premiums, label="Cumulative premiums", color="#2f80ed")
             ax.plot(times_cf, claims, label="Cumulative claims", color="#f2994a")
             ax.set_xlabel("Time t")
             ax.set_ylabel("Million USD")
             ax.set_title("Cashflow decomposition")
             ax.legend()
-            ax.grid(True, linestyle=":", linewidth=0.5)
+            style_axes(ax)
             chart_cols[1].pyplot(fig, use_container_width=True)
+            chart_cols[1].caption(
+                "Premium inflow versus cumulative claims for the same path."
+            )
 
             if result.events:
                 chart_cols = st.columns(2)
-                fig, ax = plt.subplots(figsize=FIG_MED)
+                fig, ax = plt.subplots(figsize=FIG_TIGHT)
                 ax.bar(
                     [event.index for event in result.events],
                     [event.claim_size for event in result.events],
@@ -551,17 +635,23 @@ def main() -> None:
                 ax.set_xlabel("Event index")
                 ax.set_ylabel("Claim size")
                 ax.set_title("Claim sizes by event")
-                ax.grid(True, axis="y", linestyle=":", linewidth=0.5)
+                style_axes(ax)
                 chart_cols[0].pyplot(fig, use_container_width=True)
+                chart_cols[0].caption(
+                    "Claim magnitudes for each jump in the single path."
+                )
 
-                fig, ax = plt.subplots(figsize=FIG_MED)
+                fig, ax = plt.subplots(figsize=FIG_TIGHT)
                 nt_times, nt_counts = poisson_step_path(result, sim_horizon)
                 ax.step(nt_times, nt_counts, where="post", color="#2f80ed")
                 ax.set_xlabel("Time t")
                 ax.set_ylabel("N(t)")
                 ax.set_title("Poisson counting process N(t)")
-                ax.grid(True, linestyle=":", linewidth=0.5)
+                style_axes(ax)
                 chart_cols[1].pyplot(fig, use_container_width=True)
+                chart_cols[1].caption(
+                    "Poisson counting process aligned with the surplus path."
+                )
 
             if result.ruined:
                 st.error(f"Ruin time: {result.ruin_time:.6f}")
@@ -581,7 +671,7 @@ def main() -> None:
                 horizon=sim_horizon,
                 seed=seed + 17,
             )
-            fig, ax = plt.subplots(figsize=FIG_WIDE)
+            fig, ax = plt.subplots(figsize=FIG_WIDE_TIGHT)
             for path in paths:
                 times, values = build_step_path(path)
                 ax.step(times, values, where="post", alpha=0.6, linewidth=1)
@@ -589,8 +679,9 @@ def main() -> None:
             ax.set_title("Multiple surplus paths")
             ax.set_xlabel("Time t")
             ax.set_ylabel("Surplus U(t)")
-            ax.grid(True, linestyle=":", linewidth=0.5)
+            style_axes(ax)
             st.pyplot(fig, use_container_width=True)
+            st.caption("Ensemble of paths to visualize dispersion and tail risk.")
 
     with tabs[2]:
         st.subheader("Distribution diagnostics")
@@ -638,6 +729,7 @@ def main() -> None:
             "#27ae60",
             figsize=FIG_MED,
         )
+        st.caption("Event time T4 follows an Erlang distribution (sum of 4 waits).")
 
         st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.write("Poisson count diagnostics")
@@ -652,7 +744,7 @@ def main() -> None:
         ax.set_xlabel(f"N(t) with t={analysis_t:.2f}")
         ax.set_ylabel("Probability")
         ax.set_title("Poisson counts vs theoretical PMF")
-        ax.grid(True, linestyle=":", linewidth=0.5)
+        style_axes(ax)
         st.pyplot(fig, use_container_width=True)
         st.caption(
             f"Sample mean: {sum(count_samples)/len(count_samples):.3f}, "
@@ -707,8 +799,9 @@ def main() -> None:
             ax.set_title("Distribution of U(T)")
             ax.set_xlabel("Surplus")
             ax.set_ylabel("Frequency")
-            ax.grid(True, linestyle=":", linewidth=0.5)
+            style_axes(ax)
             chart_cols[0].pyplot(fig, use_container_width=True)
+            chart_cols[0].caption("Distribution of reserve at horizon T.")
 
             if ruin_times:
                 fig, ax = plt.subplots(figsize=FIG_MED)
@@ -716,8 +809,9 @@ def main() -> None:
                 ax.set_title("Ruin time distribution")
                 ax.set_xlabel("Time")
                 ax.set_ylabel("Frequency")
-                ax.grid(True, linestyle=":", linewidth=0.5)
+                style_axes(ax)
                 chart_cols[1].pyplot(fig, use_container_width=True)
+                chart_cols[1].caption("Distribution of ruin times when ruin occurs.")
             else:
                 chart_cols[1].info("No ruin observed in the Monte Carlo runs.")
 
