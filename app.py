@@ -539,8 +539,8 @@ def main() -> None:
 
         if net_profit:
             st.caption(
-                "Net profit condition holds (c > lambda * E[Y]). "
-                f"Adjustment coefficient R = {adjustment:.6f}."
+                "Điều kiện lợi nhuận ròng thỏa (c > lambda * E[Y]). "
+                f"Hệ số điều chỉnh R = {adjustment:.6f}."
             )
         else:
             st.warning("Net profit condition fails; ruin probability is 1.")
@@ -557,7 +557,7 @@ def main() -> None:
         style_axes(ax)
         st.pyplot(fig, use_container_width=True)
         st.caption(
-            "Premium inflow, expected claims, and expected reserve at the analysis horizon."
+            "Dòng phí, bồi thường kỳ vọng và dự trữ kỳ vọng tại mốc t."
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -594,7 +594,7 @@ def main() -> None:
             style_axes(ax)
             chart_cols[0].pyplot(fig, use_container_width=True)
             chart_cols[0].caption(
-                "Single-path surplus with the ruin boundary at U(t)=0."
+                "Quỹ đạo đơn U(t) với ngưỡng phá sản tại U(t)=0."
             )
 
             premiums = [0.0]
@@ -621,7 +621,7 @@ def main() -> None:
             style_axes(ax)
             chart_cols[1].pyplot(fig, use_container_width=True)
             chart_cols[1].caption(
-                "Premium inflow versus cumulative claims for the same path."
+                "Dòng phí tích lũy so với bồi thường tích lũy của cùng quỹ đạo."
             )
 
             if result.events:
@@ -638,7 +638,7 @@ def main() -> None:
                 style_axes(ax)
                 chart_cols[0].pyplot(fig, use_container_width=True)
                 chart_cols[0].caption(
-                    "Claim magnitudes for each jump in the single path."
+                    "Kích thước bồi thường theo từng bước nhảy của quỹ đạo."
                 )
 
                 fig, ax = plt.subplots(figsize=FIG_TIGHT)
@@ -650,7 +650,7 @@ def main() -> None:
                 style_axes(ax)
                 chart_cols[1].pyplot(fig, use_container_width=True)
                 chart_cols[1].caption(
-                    "Poisson counting process aligned with the surplus path."
+                    "Quá trình đếm Poisson N(t) tương ứng với quỹ đạo U(t)."
                 )
 
             if result.ruined:
@@ -681,7 +681,7 @@ def main() -> None:
             ax.set_ylabel("Surplus U(t)")
             style_axes(ax)
             st.pyplot(fig, use_container_width=True)
-            st.caption("Ensemble of paths to visualize dispersion and tail risk.")
+            st.caption("Tập hợp nhiều quỹ đạo để quan sát độ phân tán và rủi ro đuôi.")
 
     with tabs[2]:
         st.subheader("Distribution diagnostics")
@@ -703,8 +703,8 @@ def main() -> None:
                 figsize=FIG_SMALL,
             )
             st.caption(
-                f"Sample mean: {sum(waiting_times)/len(waiting_times):.4f}, "
-                f"theoretical mean: {1/lambda_rate:.4f}"
+                f"Trung bình mẫu: {sum(waiting_times)/len(waiting_times):.4f}, "
+                f"trung bình lý thuyết: {1/lambda_rate:.4f}"
             )
 
         with cols[1]:
@@ -717,8 +717,8 @@ def main() -> None:
                 figsize=FIG_SMALL,
             )
             st.caption(
-                f"Sample mean: {sum(claim_sizes)/len(claim_sizes):.4f}, "
-                f"theoretical mean: {mean_claim:.4f}"
+                f"Trung bình mẫu: {sum(claim_sizes)/len(claim_sizes):.4f}, "
+                f"trung bình lý thuyết: {mean_claim:.4f}"
             )
 
         plot_hist_with_pdf(
@@ -729,7 +729,7 @@ def main() -> None:
             "#27ae60",
             figsize=FIG_MED,
         )
-        st.caption("Event time T4 follows an Erlang distribution (sum of 4 waits).")
+        st.caption("Thời điểm T4 tuân theo Erlang (tổng 4 thời gian chờ).")
 
         st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.write("Poisson count diagnostics")
@@ -747,9 +747,9 @@ def main() -> None:
         style_axes(ax)
         st.pyplot(fig, use_container_width=True)
         st.caption(
-            f"Sample mean: {sum(count_samples)/len(count_samples):.3f}, "
-            f"sample var: {pd.Series(count_samples).var():.3f}, "
-            f"theory mean=var={lam_t:.3f}"
+            f"Trung bình mẫu: {sum(count_samples)/len(count_samples):.3f}, "
+            f"phương sai mẫu: {pd.Series(count_samples).var():.3f}, "
+            f"lý thuyết mean=var={lam_t:.3f}"
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -801,7 +801,7 @@ def main() -> None:
             ax.set_ylabel("Frequency")
             style_axes(ax)
             chart_cols[0].pyplot(fig, use_container_width=True)
-            chart_cols[0].caption("Distribution of reserve at horizon T.")
+            chart_cols[0].caption("Phân phối dự trữ tại mốc T.")
 
             if ruin_times:
                 fig, ax = plt.subplots(figsize=FIG_MED)
@@ -811,7 +811,7 @@ def main() -> None:
                 ax.set_ylabel("Frequency")
                 style_axes(ax)
                 chart_cols[1].pyplot(fig, use_container_width=True)
-                chart_cols[1].caption("Distribution of ruin times when ruin occurs.")
+                chart_cols[1].caption("Phân phối thời điểm phá sản khi có phá sản.")
             else:
                 chart_cols[1].info("No ruin observed in the Monte Carlo runs.")
 
