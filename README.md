@@ -1,5 +1,9 @@
 # **Cramer-Lundberg Poisson Simulator**
 
+## Public Interactive Demo
+
+[Risk Simulator](https://cramer-risk-lab.vercel.app) runs the original Python model in the browser with Pyodide. Adjust parameters and seed, inspect one path or a 20-path ensemble, review the claim trace, and download JSON/CSV. Academic simulation only, not financial or insurance advice. See [browser hosting and tests](docs/browser-demo.md).
+
 ## **Mục tiêu**
 
 Dự án này mô phỏng Mô hình rủi ro Cramer-Lundberg bằng Quá trình Poisson phức hợp, với thuật toán sinh biến ngẫu nhiên minh bạch theo phương pháp nghịch đảo (Inverse Transform Sampling). Chương trình in vết (trace log) 10 biến cố đầu tiên và trực quan hóa quỹ đạo tài sản bằng biểu đồ hàm bậc thang, kèm đường biên phá sản $y=0$.
